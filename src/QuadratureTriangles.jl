@@ -37,8 +37,6 @@ function ShapeFunction(nip::Val{T}, nnodel::Val{M}) where {T,M}
     ShapeFunction(w_ip, N, dNds, dN3ds)
 end
 
-# @code_warntype ShapeFunction(nip, nnodel)
-
 function inner_barrier(Vnip, Vnnodel)
     x_ip, w_ip = ip_triangle(Vnip)
         # local coordinates and weights of points for integration of
