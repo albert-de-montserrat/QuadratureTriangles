@@ -6,6 +6,10 @@ using StaticArrays
 
 export ShapeFunction
 
+import Base
+
+Base.Val(I::Int) = Val{I}()
+
 struct ShapeFunction{nnodel, nip, M, T}
     weights::SVector{nip,T}
     N::Vector{SMatrix{1, nnodel, T, nnodel}}
@@ -16,18 +20,24 @@ end
 function ShapeFunction(nip, nnodel)
     Vnip = Val(nip)
     Vnnodel = Val(nnodel)
+    N, dNds, dN3ds = inner_barrier(Vnip, Vnnodel)
+    ShapeFunction(w_ip, N, dNds, dN3ds)
+end
+
+@code_warntype ShapeFunction(nip, nnodel)
+
+function inner_barrier(Vnip, Vnnodel)
     x_ip, w_ip = ip_triangle(Vnip)
         # local coordinates and weights of points for integration of
         # velocity/pressure matrices
     N, dNds = shape_functions_triangles(x_ip, Vnnodel)
         # velocity shape functions and their derivatives
     dN3ds = @SMatrix [-1.0   1.0   0.0 # w.r.t. r
-                      -1.0   0.0   1.0]
+                    -1.0   0.0   1.0]
         # derivatives of linear (3-node) shape functions; used to calculate
         # each element's Jacobian  
-        
-    ShapeFunction(w_ip, N, dNds, dN3ds)
-end
+    return N, dNds, dN3ds
+end    
 
 function ip_triangle(nip)
     # if nip === 1
@@ -344,4 +354,4 @@ function sf_dN_tri6(r,s)
     return dN
 end # END OF FUNCTION sf_dsf_tri
 
-end # module
+end
