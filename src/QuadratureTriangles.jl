@@ -50,19 +50,6 @@ function inner_barrier(Vnip, Vnnodel)
     return N, dNds, dN3ds
 end    
 
-function ip_triangle(nip)
-    # if nip === 1
-    #     ipx,ipw = ip_triangle1()
-    if nip === 3
-        ipx,ipw = ip_triangle3()
-    elseif nip === 6
-        ipx,ipw = ip_triangle6()
-    elseif nip === 7
-        ipx,ipw = ip_triangle7()
-    end
-    return ipx,ipw
-end
-
 ip_triangle(::Val{3}) = ip_triangle3()
 ip_triangle(::Val{6}) = ip_triangle6()
 ip_triangle(::Val{7}) = ip_triangle7()
