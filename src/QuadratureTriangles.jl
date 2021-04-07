@@ -14,17 +14,30 @@ struct ShapeFunction{nnodel, nip, M, T}
     weights::SVector{nip,T}
     N::Vector{SMatrix{1, nnodel, T, nnodel}}
     dNds::Vector{SMatrix{2, nnodel, T, M}}
-    dN3ds::SMatrix{2, 3, Float64, nip}
+    dN3ds::SMatrix{2, 3, Float64, 6}
 end
 
-function ShapeFunction(nip, nnodel)
+function ShapeFunction(nip::Int, nnodel::Int)
     Vnip = Val(nip)
     Vnnodel = Val(nnodel)
     N, dNds, dN3ds = inner_barrier(Vnip, Vnnodel)
     ShapeFunction(w_ip, N, dNds, dN3ds)
 end
 
-@code_warntype ShapeFunction(nip, nnodel)
+function ShapeFunction(nip::Val{T}, nnodel::Val{M}) where {T,M}
+    x_ip, w_ip = ip_triangle(nip)
+        # local coordinates and weights of points for integration of
+        # velocity/pressure matrices
+    N, dNds = shape_functions_triangles(x_ip, nnodel)
+        # velocity shape functions and their derivatives
+    dN3ds = @SMatrix [-1.0   1.0   0.0 # w.r.t. r
+                    -1.0   0.0   1.0]
+        # derivatives of linear (3-node) shape functions; used to calculate
+        # each element's Jacobian
+    ShapeFunction(w_ip, N, dNds, dN3ds)
+end
+
+# @code_warntype ShapeFunction(nip, nnodel)
 
 function inner_barrier(Vnip, Vnnodel)
     x_ip, w_ip = ip_triangle(Vnip)
